@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Délícias da Jovete — Gelados de Fruta</title>
+<style>
+  :root{
+    --cream:#FFF7E8;
+    --jungle:#123524;
+    --jungle-deep:#0B2418;
+    --gold:#F2B705;
+    --papaya:#FF7A45;
+    --berry:#E23E57;
+    --leaf:#2E7D4F;
+    --leaf-light:#4FA96A;
+    --ink:#1A2B21;
+    --stick:#D9B98C;
+    font-size: 16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    background: var(--jungle-deep);
+    color: var(--ink);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{
+    font-family: 'Baskerville', 'Palatino Linotype', 'Georgia', serif;
+  }
+  .sans{
+    font-family: -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+
+  /* ===== STAGE (the "video") ===== */
+  .stage{
+    position:relative;
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:
+      radial-gradient(120% 90% at 15% -10%, rgba(79,169,106,.35), transparent 60%),
+      radial-gradient(120% 90% at 110% 10%, rgba(242,183,5,.20), transparent 55%),
+      linear-gradient(180deg, var(--jungle) 0%, var(--jungle-deep) 100%);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+
+  /* decorative leaves */
+  .leaf{
+    position:absolute;
+    opacity:.5;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,.25));
+    z-index:0;
+  }
+  .leaf svg{display:block;}
+
+  /* ===== HEADER ===== */
+  header{
+    position:relative;
+    z-index:3;
+    padding:22px 22px 14px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .badge{
+    width:56px;height:56px;border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff7e8, #f2d9a8 55%, #c99b4a 100%);
+    border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;color:var(--jungle-deep);
+    font-family: 'Baskerville', serif;
+    font-size:1.1rem;
+    letter-spacing:.5px;
+    flex-shrink:0;
+    box-shadow:0 4px 14px rgba(0,0,0,.35);
+  }
+  .brand-name{
+    font-size:1.55rem;
+    line-height:1.05;
+    color:var(--cream);
+    margin:0;
+  }
+  .brand-name em{
+    font-style:normal;
+    color:var(--gold);
+  }
+  .brand-sub{
+    margin:2px 0 0;
+    font-size:.72rem;
+    letter-spacing:.06em;
+    color:rgba(255,247,232,.65);
+    font-family:-apple-system, sans-serif;
+  }
+
+  .tagline-wrap{
+    position:relative;z-index:3;
+    padding:0 24px 18px;
+  }
+  .tagline{
+    color:var(--cream);
+    font-size:1.05rem;
+    line-height:1.35;
+    margin:0;
+    max-width:26ch;
+    opacity:0;
+    animation: rise .8s ease-out .15s forwards;
+  }
+  .tagline .accent{color:var(--leaf-light);}
+  @keyframes rise{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  /* ===== PLAYER ===== */
+  .player{
+    position:relative;
+    z-index:2;
+    margin:0 18px 16px;
+    border-radius:22px;
+    background: linear-gradient(180deg, rgba(255,247,232,.08), rgba(255,247,232,.03));
+    border:1px solid rgba(255,247,232,.14);
+    padding:22px 18px 18px;
+    min-height:470px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .scene-count{
+    font-family:-apple-system, sans-serif;
+    font-size:.68rem;
+    letter-spacing:.08em;
+    color: rgba(255,247,232,.55);
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .scene-count .fresh{color:var(--gold);}
+
+  .screen{
+    position:relative;
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:270px;
+  }
+
+  .pop-card{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    opacity:0;
+    transform: scale(.9) translateY(14px);
+    transition: opacity .55s ease, transform .7s cubic-bezier(.2,.7,.2,1);
+    pointer-events:none;
+  }
+  .pop-card.active{
+    opacity:1;
+    transform: scale(1) translateY(0);
+    pointer-events:auto;
+    animation: kenburns 3.6s ease-out forwards;
+  }
+  @keyframes kenburns{
+    from{ transform: scale(1.05) translateY(0); }
+    to{ transform: scale(1) translateY(-2px); }
+  }
+
+  .popsicle{
+    position:relative;
+    width:96px;
+    height:210px;
+    margin-bottom:14px;
+    filter: drop-shadow(0 18px 22px rgba(0,0,0,.4));
+  }
+  .pop-body{
+    position:absolute;
+    top:0; left:0; right:0;
+    height:158px;
+    border-radius:20px 20px 26px 26px;
+    background: var(--fruit-grad);
+    overflow:hidden;
+  }
+  .pop-body::after{
+    content:'';
+    position:absolute;
+    top:8%; left:14%;
+    width:26%; height:60%;
+    background: rgba(255,255,255,.35);
+    border-radius:50%;
+    filter: blur(6px);
+    transform:rotate(20deg);
+  }
+  .pop-stick{
+    position:absolute;
+    bottom:-2px; left:50%;
+    transform:translateX(-50%);
+    width:16px; height:66px;
+    background: linear-gradient(180deg, var(--stick), #b98f56);
+    border-radius:0 0 6px 6px;
+  }
+  .fruit-emoji{
+    position:absolute;
+    top:-14px; right:-10px;
+    font-size:2rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,.35));
+    transform: rotate(8deg);
+  }
+
+  .pop-name{
+    color:var(--cream);
+    font-size:1.7rem;
+    margin:0 0 4px;
+    text-align:center;
+    letter-spacing:.01em;
+  }
+  .pop-desc{
+    font-family:-apple-system, sans-serif;
+    color: rgba(255,247,232,.78);
+    font-size:.86rem;
+    line-height:1.4;
+    text-align:center;
+    max-width:30ch;
+    margin:0 0 12px;
+  }
+  .price-pill{
+    font-family:-apple-system, sans-serif;
+    font-weight:700;
+    font-size:.82rem;
+    color: var(--jungle-deep);
+    background: var(--gold);
+    padding:6px 16px;
+    border-radius:999px;
+    box-shadow:0 4px 12px rgba(242,183,5,.35);
+  }
+  .price-pill.special{
+    background: var(--berry);
+    color: var(--cream);
+  }
+
+  /* progress bar for current scene */
+  .timeline{
+    display:flex;
+    gap:6px;
+    margin-top:16px;
+  }
+  .tick{
+    flex:1;
+    height:4px;
+    border-radius:4px;
+    background: rgba(255,247,232,.18);
+    overflow:hidden;
+  }
+  .tick i{
+    display:block;
+    height:100%;
+    width:0%;
+    background: var(--gold);
+    border-radius:4px;
+  }
+  .tick.done i{width:100%; background: var(--leaf-light);}
+  .tick.active i{
+    animation: fill 3.6s linear forwards;
+  }
+  @keyframes fill{ from{width:0%;} to{width:100%;} }
+
+  .controls{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:14px;
+  }
+  .ctrl-btn{
+    width:38px;height:38px;
+    border-radius:50%;
+    border:1px solid rgba(255,247,232,.3);
+    background: rgba(255,247,232,.06);
+    color:var(--cream);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:1rem;
+    transition: background .2s ease;
+  }
+  .ctrl-btn:hover{ background: rgba(255,247,232,.16); }
+  .ctrl-btn:active{ transform: scale(.94); }
+
+  .dots{
+    display:flex;
+    gap:6px;
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background: rgba(255,247,232,.28);
+    cursor:pointer;
+    transition: background .2s ease, transform .2s ease;
+  }
+  .dot.active{ background: var(--gold); transform: scale(1.3); }
+
+  /* ===== BOTTOM INFO ===== */
+  .badges-row{
+    position:relative;z-index:2;
+    display:flex;
+    gap:8px;
+    padding:0 22px 14px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .badges-row::-webkit-scrollbar{display:none;}
+  .info-chip{
+    flex:0 0 auto;
+    font-family:-apple-system, sans-serif;
+    font-size:.72rem;
+    color: var(--cream);
+    background: rgba(255,247,232,.08);
+    border:1px solid rgba(255,247,232,.16);
+    padding:7px 12px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+
+  .cta-bar{
+    position:relative;z-index:3;
+    margin:6px 18px 26px;
+    background: linear-gradient(135deg, var(--leaf), var(--jungle));
+    border-radius:18px;
+    padding:18px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border:1px solid rgba(255,247,232,.15);
+  }
+  .cta-text{
+    color:var(--cream);
+  }
+  .cta-text strong{
+    display:block;
+    font-size:1.05rem;
+    margin-bottom:2px;
+  }
+  .cta-text span{
+    font-family:-apple-system, sans-serif;
+    font-size:.74rem;
+    color: rgba(255,247,232,.72);
+  }
+  .whatsapp-btn{
+    font-family:-apple-system, sans-serif;
+    font-weight:700;
+    font-size:.85rem;
+    color:#0B2418;
+    background: var(--gold);
+    border:none;
+    padding:11px 16px;
+    border-radius:12px;
+    text-decoration:none;
+    white-space:nowrap;
+    box-shadow: 0 6px 16px rgba(242,183,5,.3);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  footer{
+    position:relative;z-index:2;
+    text-align:center;
+    padding-bottom:22px;
+    font-family:-apple-system, sans-serif;
+    font-size:.72rem;
+    color: rgba(255,247,232,.4);
+  }
+
+  @media (max-width:380px){
+    .player{min-height:440px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+
+  <!-- decorative leaves -->
+  <div class="leaf" style="top:-20px; left:-30px; width:140px;">
+    <svg viewBox="0 0 100 140" width="140"><path d="M50 0 C90 30 90 100 50 140 C10 100 10 30 50 0 Z" fill="#2E7D4F"/><path d="M50 8 L50 132" stroke="#123524" stroke-width="3"/></svg>
+  </div>
+  <div class="leaf" style="top:10px; right:-40px; width:120px; transform:rotate(35deg);">
+    <svg viewBox="0 0 100 140" width="120"><path d="M50 0 C90 30 90 100 50 140 C10 100 10 30 50 0 Z" fill="#4FA96A"/><path d="M50 8 L50 132" stroke="#123524" stroke-width="3"/></svg>
+  </div>
+  <div class="leaf" style="bottom:-30px; left:-20px; width:160px; transform:rotate(-15deg); opacity:.35;">
+    <svg viewBox="0 0 100 140" width="160"><path d="M50 0 C90 30 90 100 50 140 C10 100 10 30 50 0 Z" fill="#2E7D4F"/><path d="M50 8 L50 132" stroke="#123524" stroke-width="3"/></svg>
+  </div>
+
+  <header>
+    <div class="badge display">JC</div>
+    <div>
+      <p class="brand-name display">Délícias da <em>Jovete</em></p>
+      <p class="brand-sub">JC COMMERCIAL · GELADOS DE FRUTA</p>
+    </div>
+  </header>
+
+  <div class="tagline-wrap">
+    <p class="tagline display">Refresque seu dia com <span class="accent">sabor</span> e <span class="accent">saúde</span> — 100% natural, sem corantes.</p>
+  </div>
+
+  <div class="player">
+    <div class="scene-count">
+      <span id="sceneLabel">SABOR 1 / 9</span>
+      <span class="fresh">● AO VIVO</span>
+    </div>
+
+    <div class="screen" id="screen"></div>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div class="controls">
+      <button class="ctrl-btn" id="prevBtn" aria-label="Anterior">‹</button>
+      <div class="dots" id="dots"></div>
+      <button class="ctrl-btn" id="nextBtn" aria-label="Próximo">›</button>
+    </div>
+  </div>
+
+  <div class="badges-row">
+    <span class="info-chip">🌿 100% naturais</span>
+    <span class="info-chip">🚫 Sem corantes</span>
+    <span class="info-chip">🚫 Sem conservantes</span>
+    <span class="info-chip">❄️ Sempre fresquinho</span>
+  </div>
+
+  <div class="cta-bar">
+    <div class="cta-text">
+      <strong>Peça já o seu!</strong>
+      <span>Entrega rápida via WhatsApp</span>
+    </div>
+    <a class="whatsapp-btn" href="https://wa.me/41791339282" target="_blank" rel="noopener">📱 +41 79 133 92 82</a>
+  </div>
+
+  <footer>Feito com amor e dedicação ♡ Délícias da Jovete</footer>
+</div>
+
+<script>
+const flavors = [
+  { name:"Coco", emoji:"🥥", grad:"linear-gradient(160deg,#fffaf0,#e8dcc4)", desc:"Rico em fibras e minerais.", price:"2.00 FR" },
+  { name:"Maracujá", emoji:"🟡", grad:"linear-gradient(160deg,#ffd166,#f4a300)", desc:"Fonte de vitamina C e antioxidantes.", price:"2.00 FR" },
+  { name:"Morango", emoji:"🍓", grad:"linear-gradient(160deg,#ff8fa3,#e23e57)", desc:"Fonte de vitamina C e muito sabor.", price:"2.00 FR" },
+  { name:"Múcua", emoji:"🌰", grad:"linear-gradient(160deg,#e8c9a0,#b98f56)", desc:"Fruta típica de Angola. Nutritiva e energética.", price:"Preço especial", special:true },
+  { name:"Banana", emoji:"🍌", grad:"linear-gradient(160deg,#fff1a8,#f2c94c)", desc:"Fonte de energia natural e potássio.", price:"2.00 FR" },
+  { name:"Banana com Morango", emoji:"🍌🍓", grad:"linear-gradient(160deg,#ffe3ec,#ff8fa3)", desc:"Combinação perfeita: doce e refrescante.", price:"2.00 FR" },
+  { name:"Abacate", emoji:"🥑", grad:"linear-gradient(160deg,#cfe8b0,#6fa84f)", desc:"Cremoso, nutritivo e cheio de boas gorduras.", price:"2.00 FR" },
+  { name:"Chocolate", emoji:"🍫", grad:"linear-gradient(160deg,#8a5a44,#4b2e22)", desc:"Sabor intenso com ingredientes naturais.", price:"2.00 FR" },
+  { name:"Bolacha", emoji:"🍪", grad:"linear-gradient(160deg,#e8c9a0,#c9975f)", desc:"Sabor irresistível que lembra momentos felizes.", price:"2.00 FR" },
+];
+
+const screen = document.getElementById('screen');
+const timeline = document.getElementById('timeline');
+const dotsWrap = document.getElementById('dots');
+const sceneLabel = document.getElementById('sceneLabel');
+const SCENE_MS = 3600;
+let current = 0;
+let timer = null;
+
+flavors.forEach((f, i) => {
+  const card = document.createElement('div');
+  card.className = 'pop-card';
+  card.id = 'card-' + i;
+  card.innerHTML = `
+    <div class="popsicle">
+      <div class="pop-body" style="--fruit-grad:${f.grad}"></div>
+      <div class="pop-stick"></div>
+      <div class="fruit-emoji">${f.emoji}</div>
+    </div>
+    <h2 class="pop-name display">${f.name}</h2>
+    <p class="pop-desc">${f.desc}</p>
+    <span class="price-pill${f.special ? ' special' : ''}">${f.price}</span>
+  `;
+  screen.appendChild(card);
+
+  const tick = document.createElement('div');
+  tick.className = 'tick';
+  tick.id = 'tick-' + i;
+  tick.innerHTML = '<i></i>';
+  timeline.appendChild(tick);
+
+  const dot = document.createElement('div');
+  dot.className = 'dot';
+  dot.id = 'dot-' + i;
+  dot.addEventListener('click', () => goTo(i));
+  dotsWrap.appendChild(dot);
+});
+
+function render() {
+  flavors.forEach((_, i) => {
+    document.getElementById('card-' + i).classList.toggle('active', i === current);
+    document.getElementById('dot-' + i).classList.toggle('active', i === current);
+    const tick = document.getElementById('tick-' + i);
+    tick.classList.remove('active', 'done');
+    if (i < current) tick.classList.add('done');
+    if (i === current) tick.classList.add('active');
+  });
+  sceneLabel.textContent = `SABOR ${current + 1} / ${flavors.length}`;
+}
+
+function next() {
+  current = (current + 1) % flavors.length;
+  render();
+}
+function prev() {
+  current = (current - 1 + flavors.length) % flavors.length;
+  render();
+}
+function goTo(i) {
+  current = i;
+  render();
+  resetTimer();
+}
+function resetTimer() {
+  clearInterval(timer);
+  timer = setInterval(next, SCENE_MS);
+}
+
+document.getElementById('nextBtn').addEventListener('click', () => { next(); resetTimer(); });
+document.getElementById('prevBtn').addEventListener('click', () => { prev(); resetTimer(); });
+
+render();
+resetTimer();
+</script>
+
+</body>
+</html>
